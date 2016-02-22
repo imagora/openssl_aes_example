@@ -1,1 +1,6 @@
+# ignore for cmake.proj
 */.idea
+
+
+# ignore for xcode
+xcuserdata
