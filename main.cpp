@@ -91,7 +91,7 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 }
 
 
-int test_encrypt_decrypt_result(unsigned char *plaintext, unsigned char *key, unsigned char *iv)
+void test_encrypt_decrypt_result(unsigned char *plaintext, unsigned char *key, unsigned char *iv)
 {
     /* Buffer for ciphertext. Ensure the buffer is long enough for the
      * ciphertext which may be longer than the plaintext, dependant on the
@@ -128,7 +128,7 @@ int test_encrypt_decrypt_result(unsigned char *plaintext, unsigned char *key, un
 }
 
 
-int test_encrypt_decrypt_performance(unsigned char *plaintext, unsigned char *key, unsigned char *iv)
+void test_encrypt_decrypt_performance(unsigned char *plaintext, unsigned char *key, unsigned char *iv)
 {
     /* Buffer for ciphertext. Ensure the buffer is long enough for the
      * ciphertext which may be longer than the plaintext, dependant on the
@@ -139,7 +139,7 @@ int test_encrypt_decrypt_performance(unsigned char *plaintext, unsigned char *ke
     /* Buffer for the decrypted text */
     unsigned char decryptedtext[1024];
 
-    int decryptedtext_len, ciphertext_len;
+    int ciphertext_len;
 
     clock_t start = clock();
     double elapsedTime = 0.0;
@@ -157,7 +157,7 @@ int test_encrypt_decrypt_performance(unsigned char *plaintext, unsigned char *ke
 }
 
 
-int test_encrypt_preformance(unsigned char *plaintext, unsigned char *key, unsigned char *iv)
+void test_encrypt_preformance(unsigned char *plaintext, unsigned char *key, unsigned char *iv)
 {
     /* Buffer for ciphertext. Ensure the buffer is long enough for the
      * ciphertext which may be longer than the plaintext, dependant on the
@@ -179,7 +179,7 @@ int test_encrypt_preformance(unsigned char *plaintext, unsigned char *key, unsig
 }
 
 
-int test_decrypt_performance(unsigned char *plaintext, unsigned char *key, unsigned char *iv)
+void test_decrypt_performance(unsigned char *plaintext, unsigned char *key, unsigned char *iv)
 {
     /* Buffer for ciphertext. Ensure the buffer is long enough for the
      * ciphertext which may be longer than the plaintext, dependant on the
