@@ -2,7 +2,6 @@
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
-#include <string>
 
 
 void handleErrors(void)
@@ -92,6 +91,125 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 }
 
 
+int test_encrypt_decrypt_result(unsigned char *plaintext, unsigned char *key, unsigned char *iv)
+{
+    /* Buffer for ciphertext. Ensure the buffer is long enough for the
+     * ciphertext which may be longer than the plaintext, dependant on the
+     * algorithm and mode
+     */
+    unsigned char ciphertext[1024];
+
+    /* Buffer for the decrypted text */
+    unsigned char decryptedtext[1024];
+
+    int decryptedtext_len, ciphertext_len;
+
+    clock_t start = clock();
+
+    /* Encrypt the plaintext */
+    ciphertext_len = encrypt(plaintext, static_cast<int>(strlen((char *)plaintext)), key, iv, ciphertext);
+
+    /* Do something useful with the ciphertext here */
+    printf("Ciphertext is:\n");
+    BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
+    printf("\n\n");
+
+    /* Decrypt the ciphertext */
+    decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, decryptedtext);
+
+    /* Add a NULL terminator. We are expecting printable text */
+    decryptedtext[decryptedtext_len] = '\0';
+
+    /* Show the decrypted text */
+    printf("Decrypted text is:\n");
+    printf("%s\n\n", decryptedtext);
+
+    std::cout << "Elapsed time: " << static_cast<double>(clock() - start) /CLOCKS_PER_SEC << "s.\n\n" << std::endl;
+}
+
+
+int test_encrypt_decrypt_performance(unsigned char *plaintext, unsigned char *key, unsigned char *iv)
+{
+    /* Buffer for ciphertext. Ensure the buffer is long enough for the
+     * ciphertext which may be longer than the plaintext, dependant on the
+     * algorithm and mode
+     */
+    unsigned char ciphertext[1024];
+
+    /* Buffer for the decrypted text */
+    unsigned char decryptedtext[1024];
+
+    int decryptedtext_len, ciphertext_len;
+
+    clock_t start = clock();
+    double elapsedTime = 0.0;
+    int runTimes = 0;
+    while (runTimes < 800000) {
+        ++runTimes;
+        /* Encrypt the plaintext */
+        ciphertext_len = encrypt(plaintext, static_cast<int>(strlen((char *)plaintext)), key, iv, ciphertext);
+
+        /* Decrypt the ciphertext */
+        decrypt(ciphertext, ciphertext_len, key, iv, decryptedtext);
+    }
+    elapsedTime = static_cast<double>(clock() - start) /CLOCKS_PER_SEC;
+    std::cout << "Total run times: " << runTimes << " elapsed Time: " << elapsedTime << "s.\n\n" << std::endl;
+}
+
+
+int test_encrypt_preformance(unsigned char *plaintext, unsigned char *key, unsigned char *iv)
+{
+    /* Buffer for ciphertext. Ensure the buffer is long enough for the
+     * ciphertext which may be longer than the plaintext, dependant on the
+     * algorithm and mode
+     */
+    unsigned char ciphertext[1024];
+
+    clock_t start = clock();
+    double elapsedTime = 0.0;
+    int runTimes = 0;
+    while (runTimes < 1600000) {
+        ++runTimes;
+
+        /* Encrypt the plaintext */
+        encrypt(plaintext, static_cast<int>(strlen((char *)plaintext)), key, iv, ciphertext);
+    }
+    elapsedTime = static_cast<double>(clock() - start) /CLOCKS_PER_SEC;
+    std::cout << "Encrypt total run times: " << runTimes << " elapsed Time: " << elapsedTime << "s.\n\n" << std::endl;
+}
+
+
+int test_decrypt_performance(unsigned char *plaintext, unsigned char *key, unsigned char *iv)
+{
+    /* Buffer for ciphertext. Ensure the buffer is long enough for the
+     * ciphertext which may be longer than the plaintext, dependant on the
+     * algorithm and mode
+     */
+    unsigned char ciphertext[1024];
+
+    /* Buffer for the decrypted text */
+    unsigned char decryptedtext[1024];
+
+    int ciphertext_len;
+
+    /* Encrypt the plaintext */
+    ciphertext_len = encrypt(plaintext, static_cast<int>(strlen((char *)plaintext)), key, iv, ciphertext);
+
+    clock_t start = clock();
+    double elapsedTime = 0.0;
+    int runTimes = 0;
+    while (runTimes < 1600000) {
+        ++runTimes;
+
+        /* Decrypt the ciphertext */
+        decrypt(ciphertext, ciphertext_len, key, iv, decryptedtext);
+    }
+
+    elapsedTime = static_cast<double>(clock() - start) /CLOCKS_PER_SEC;
+    std::cout << "Decrypt total run times: " << runTimes << " elapsed Time: " << elapsedTime << "s.\n\n" << std::endl;
+}
+
+
 int main() {
     /* Set up the key and iv. Do I need to say to not hard code these in a
      * real application? :-)
@@ -116,51 +234,21 @@ int main() {
         " AES is a symmetric-key algorithm, meaning the same key is used for both encrypting and decrypting t"
         "he data. In the United States, AES was announced by the NIST as U.S. FIPS PUB 197 on November 26, 20"
         "01.";
-    
-    /* Buffer for ciphertext. Ensure the buffer is long enough for the
-     * ciphertext which may be longer than the plaintext, dependant on the
-     * algorithm and mode
-     */
-    unsigned char ciphertext[1024];
-    
-    /* Buffer for the decrypted text */
-    unsigned char decryptedtext[1024];
-    
-    int decryptedtext_len, ciphertext_len;
-    
+
     /* Initialise the library */
     ERR_load_crypto_strings();
     OpenSSL_add_all_algorithms();
     OPENSSL_config(NULL);
-    
-    clock_t start = clock();
-    double elapsedTime = 0.0;
-    int runTimes = 0;
-    while (elapsedTime < 1.0) {
-        ++runTimes;
-        /* Encrypt the plaintext */
-        ciphertext_len = encrypt(plaintext, static_cast<int>(strlen((char *)plaintext)), key, iv, ciphertext);
-        
-        /* Do something useful with the ciphertext here */
-        //printf("Ciphertext is:\n");
-        //BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
-        
-        /* Decrypt the ciphertext */
-        decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, decryptedtext);
-        
-        /* Add a NULL terminator. We are expecting printable text */
-        decryptedtext[decryptedtext_len] = '\0';
-        
-        /* Show the decrypted text */
-        //printf("Decrypted text is:\n");
-        //printf("%s\n", decryptedtext);
-        
-        memset(decryptedtext, 0, 1024);
-        elapsedTime = static_cast<double>(clock() - start) /CLOCKS_PER_SEC;
-    }
-    
-    std::cout << "Total run times: " << runTimes << " elapsed Time: " << elapsedTime << std::endl;
-    
+
+    /* Test cases */
+    test_encrypt_decrypt_result(plaintext, key, iv);
+
+    test_encrypt_decrypt_performance(plaintext, key, iv);
+
+    test_encrypt_preformance(plaintext, key, iv);
+
+    test_decrypt_performance(plaintext, key, iv);
+
     /* Clean up */
     EVP_cleanup();
     ERR_free_strings();
