@@ -26,12 +26,9 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
     
     /* Initialise the encryption operation. IMPORTANT - ensure you use a key
      * and IV size appropriate for your cipher
-     * In this example we are using 256 bit AES (i.e. a 256 bit key). The
+     * In this example we are using 128 bit AES (i.e. a 128 bit key). The
      * IV size for *most* modes is the same as the block size. For AES this
      * is 128 bits */
-//    if (1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
-//        handleErrors();
-    
     if (1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_xts(), NULL, key, iv))
         handleErrors();
     
@@ -69,12 +66,9 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
     
     /* Initialise the decryption operation. IMPORTANT - ensure you use a key
      * and IV size appropriate for your cipher
-     * In this example we are using 256 bit AES (i.e. a 256 bit key). The
+     * In this example we are using 128 bit AES (i.e. a 128 bit key). The
      * IV size for *most* modes is the same as the block size. For AES this
      * is 128 bits */
-//    if (1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
-//        handleErrors();
-    
     if (1 != EVP_DecryptInit_ex(ctx, EVP_aes_128_xts(), NULL, key, iv))
         handleErrors();
     
@@ -103,25 +97,34 @@ int main() {
      * real application? :-)
      */
     
-    /* A 256 bit key */
-//    unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+    /* A 128 bit key */
     unsigned char *key = (unsigned char *)"01234567890123456";
     
-    /* A 128 bit IV */
+    /* A 128 bit IV (Initialization Vector) */
     unsigned char *iv =  (unsigned char *)"01234567890123456";
     
     /* Message to be encrypted */
-    unsigned char *plaintext =
-    (unsigned char *)"The quick brown fox jumps over the lazy dog";
+    unsigned char *plaintext = (unsigned char *)
+        "The Advanced Encryption Standard (AES), also known as Rijndael(its original name), is a specificatio"
+        "n for the encryption of electronic data established by the U.S. National Institute of Standards and "
+        "Technology (NIST) in 2001. AES is based on the Rijndael cipher developed by two Belgian cryptographe"
+        "rs, Joan Daemen and Vincent Rijmen, who submitted a proposal to NIST during the AES selection proces"
+        "s. Rijndael is a family of ciphers with different key and block sizes. For AES, NIST selected three "
+        "members of the Rijndael family, each with a block size of 128 bits, but three different key lengths:"
+        " 128, 192 and 256 bits. AES has been adopted by the U.S. government and is now used worldwide. It su"
+        "persedes the Data Encryption Standard (DES), which was published in 1977. The algorithm described by"
+        " AES is a symmetric-key algorithm, meaning the same key is used for both encrypting and decrypting t"
+        "he data. In the United States, AES was announced by the NIST as U.S. FIPS PUB 197 on November 26, 20"
+        "01.";
     
     /* Buffer for ciphertext. Ensure the buffer is long enough for the
      * ciphertext which may be longer than the plaintext, dependant on the
      * algorithm and mode
      */
-    unsigned char ciphertext[128];
+    unsigned char ciphertext[1024];
     
     /* Buffer for the decrypted text */
-    unsigned char decryptedtext[128];
+    unsigned char decryptedtext[1024];
     
     int decryptedtext_len, ciphertext_len;
     
@@ -130,23 +133,33 @@ int main() {
     OpenSSL_add_all_algorithms();
     OPENSSL_config(NULL);
     
-    /* Encrypt the plaintext */
-    ciphertext_len = encrypt(plaintext, strlen ((char *)plaintext), key, iv, ciphertext);
+    clock_t start = clock();
+    double elapsedTime = 0.0;
+    int runTimes = 0;
+    while (elapsedTime < 1.0) {
+        ++runTimes;
+        /* Encrypt the plaintext */
+        ciphertext_len = encrypt(plaintext, static_cast<int>(strlen((char *)plaintext)), key, iv, ciphertext);
+        
+        /* Do something useful with the ciphertext here */
+        //printf("Ciphertext is:\n");
+        //BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
+        
+        /* Decrypt the ciphertext */
+        decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, decryptedtext);
+        
+        /* Add a NULL terminator. We are expecting printable text */
+        decryptedtext[decryptedtext_len] = '\0';
+        
+        /* Show the decrypted text */
+        //printf("Decrypted text is:\n");
+        //printf("%s\n", decryptedtext);
+        
+        memset(decryptedtext, 0, 1024);
+        elapsedTime = static_cast<double>(clock() - start) /CLOCKS_PER_SEC;
+    }
     
-    /* Do something useful with the ciphertext here */
-    printf("Ciphertext is:\n");
-    BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
-    
-    /* Decrypt the ciphertext */
-    decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
-                                decryptedtext);
-    
-    /* Add a NULL terminator. We are expecting printable text */
-    decryptedtext[decryptedtext_len] = '\0';
-    
-    /* Show the decrypted text */
-    printf("Decrypted text is:\n");
-    printf("%s\n", decryptedtext);
+    std::cout << "Total run times: " << runTimes << " elapsed Time: " << elapsedTime << std::endl;
     
     /* Clean up */
     EVP_cleanup();
@@ -154,3 +167,5 @@ int main() {
     
     return 0;
 }
+
+
