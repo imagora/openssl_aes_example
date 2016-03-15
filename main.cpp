@@ -110,7 +110,7 @@ void test_encrypt_decrypt_result(unsigned char *plaintext, unsigned char *key, u
     ciphertext_len = encrypt(plaintext, static_cast<int>(strlen((char *)plaintext)), key, iv, ciphertext);
 
     /* Do something useful with the ciphertext here */
-    printf("Ciphertext is:\n");
+    printf("Ciphertext(length: %d) is:\n", ciphertext_len);
     BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
     printf("\n\n");
 
@@ -121,7 +121,7 @@ void test_encrypt_decrypt_result(unsigned char *plaintext, unsigned char *key, u
     decryptedtext[decryptedtext_len] = '\0';
 
     /* Show the decrypted text */
-    printf("Decrypted text is:\n");
+    printf("Decrypted text(length: %d) is:\n", decryptedtext_len);
     printf("%s\n\n", decryptedtext);
 
     std::cout << "Elapsed time: " << static_cast<double>(clock() - start) /CLOCKS_PER_SEC << "s.\n\n" << std::endl;
@@ -153,7 +153,7 @@ void test_encrypt_decrypt_performance(unsigned char *plaintext, unsigned char *k
         decrypt(ciphertext, ciphertext_len, key, iv, decryptedtext);
     }
     elapsedTime = static_cast<double>(clock() - start) /CLOCKS_PER_SEC;
-    std::cout << "Total run times: " << runTimes << " elapsed Time: " << elapsedTime << "s.\n\n" << std::endl;
+    std::cout << "Encrypt and decrypt total run times: " << runTimes << " elapsed Time: " << elapsedTime << "s.\n\n" << std::endl;
 }
 
 
@@ -210,13 +210,37 @@ void test_decrypt_performance(unsigned char *plaintext, unsigned char *key, unsi
 }
 
 
+void GenerateKey()
+{
+    // Key and IV values.
+    const char *pcCode = "543210";
+
+    unsigned char acKey[EVP_MAX_KEY_LENGTH + 1];
+    unsigned char acIV[EVP_MAX_IV_LENGTH + 1];
+
+    // Load all the encryption ciphers and lookup the one we want to use.
+    OpenSSL_add_all_algorithms();
+    const EVP_CIPHER *cipher = EVP_get_cipherbyname("aes-128-xts");
+    const EVP_MD *digest = EVP_get_digestbyname("sha1");
+
+    // Generate HashKey for the password.
+    int nrounds = 2;
+    int nCnt = EVP_BytesToKey(cipher, digest, NULL, (const unsigned char *) pcCode, strlen(pcCode), nrounds, acKey, acIV);
+
+    std::cout << "nCnt: " << nCnt << " key length: " << EVP_MAX_KEY_LENGTH << " iv length: " << EVP_MAX_IV_LENGTH << std::endl;
+    BIO_dump_fp(stdout, (const char*)acKey, nCnt);
+    printf("\n\n");
+    BIO_dump_fp(stdout, (const char*)acIV, EVP_MAX_IV_LENGTH);
+}
+
+
 int main() {
     /* Set up the key and iv. Do I need to say to not hard code these in a
      * real application? :-)
      */
     
     /* A 128 bit key */
-    unsigned char *key = (unsigned char *)"01234567890123456";
+    unsigned char *key = (unsigned char *)"0123456789012345601234567890123456";
     
     /* A 128 bit IV (Initialization Vector) */
     unsigned char *iv =  (unsigned char *)"01234567890123456";
@@ -241,13 +265,16 @@ int main() {
     OPENSSL_config(NULL);
 
     /* Test cases */
-    test_encrypt_decrypt_result(plaintext, key, iv);
+
+//    test_encrypt_decrypt_result(plaintext, key, iv);
 
     test_encrypt_decrypt_performance(plaintext, key, iv);
 
     test_encrypt_preformance(plaintext, key, iv);
 
     test_decrypt_performance(plaintext, key, iv);
+
+//    GenerateKey();
 
     /* Clean up */
     EVP_cleanup();
