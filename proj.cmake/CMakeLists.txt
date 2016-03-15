@@ -5,7 +5,7 @@ set(TARGET_NAME AesEncryptTest)
 
 include_directories("/usr/local/Cellar/openssl/1.0.2d_1/include")
 link_directories ("/usr/local/Cellar/openssl/1.0.2d_1/lib")
-set (LINK_LIBS libssl.a libcrypto.a)
+set (LINK_LIBS libcrypto.a)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
